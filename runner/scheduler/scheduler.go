@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/leminhohoho/sport-prediction/helpers"
+	"github.com/leminhohoho/sport-prediction/runner/helpers"
 )
 
 type Action interface {
