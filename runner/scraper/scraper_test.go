@@ -19,7 +19,11 @@ func TestScraper(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 	defer cancel()
 
-	scraper := NewScraper(42, 2)
+	scraper := NewScraper(
+		42,
+		3,
+		"http://100.106.3.17:8888",
+	)
 
 	content, err := scraper.Scrape(
 		ctx,

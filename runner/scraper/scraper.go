@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand/v2"
 	"os"
 	"time"
 
+	"github.com/chromedp/cdproto/fetch"
+	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"github.com/leminhohoho/sport-prediction/runner/helpers"
 )
@@ -14,24 +17,21 @@ import (
 type Scraper struct {
 	randomness int
 	retries    int
-	// errorHandler models.ErrorHandler
+	proxies    []string
 }
 
 // Create a new scraper, randomness will determinte how unpredictable the scheduler will behave,
 // retries specify the maximum number of retries the scraper will make if initial require is failed,
 // errorHandler specify the error handler that will be used for this scraper
-func NewScraper(randomness int, retries int,
-
-// errorHandler models.ErrorHandler
-) *Scraper {
+func NewScraper(randomness int, retries int, proxies ...string) *Scraper {
 	return &Scraper{
 		randomness: randomness,
 		retries:    retries,
-		// errorHandler: errorHandler,
+		proxies:    proxies,
 	}
 }
 
-func (s *Scraper) Scrape(ctx context.Context, url, targetPageReachedSelector string) (string, error) {
+func (s *Scraper) initializeBrowserContext(ctx context.Context) (context.Context, context.CancelFunc, error) {
 	// Get user data directory for the headless chromium instance.
 	// This is important for bypassing Cloudfare bot detection by using a user data
 	// directory that has passed the captcha test by cloudfare.
@@ -41,7 +41,7 @@ func (s *Scraper) Scrape(ctx context.Context, url, targetPageReachedSelector str
 	// This folder need to be granted permission by using chmod before can be used.
 	profileDir := os.Getenv("CHROME_USER_DATA_DIR")
 	if profileDir == "" {
-		return "", fmt.Errorf("user data dir not specified\n")
+		return nil, nil, fmt.Errorf("user data dir not specified\n")
 	}
 
 	opts := append(
@@ -64,24 +64,71 @@ func (s *Scraper) Scrape(ctx context.Context, url, targetPageReachedSelector str
 		// Set `disable-dev-shm-usage` to true tell the chromium instance to use /tmp as temporary
 		// storage, which is better when using with Docker.
 		chromedp.Flag("disable-dev-shm-usage", true),
+		// chromedp.Flag("blink-settings", "imagesEnabled=false"),
+		chromedp.IgnoreCertErrors,
 	)
 
-	// Create a context to carry all the options.
-	allocCtx, cancel := chromedp.NewExecAllocator(ctx, opts...)
-	defer cancel()
+	if len(s.proxies) > 0 {
+		proxy := s.proxies[rand.IntN(len(s.proxies))]
+		opts = append(opts, chromedp.ProxyServer(proxy))
+	}
 
-	newCtx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
+	// Create a context to carry all the options.
+	allocCtx, allowCtxCancel := chromedp.NewExecAllocator(ctx, opts...)
+	newCtx, newCtxCancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
+
+	return newCtx, func() { allowCtxCancel(); newCtxCancel() }, nil
+
+}
+
+func (s *Scraper) Scrape(ctx context.Context, url, targetPageReachedSelector string) (string, error) {
+	chromeCtx, cancel, err := s.initializeBrowserContext(ctx)
+	if err != nil {
+		return "", err
+	}
 	defer cancel()
 
 	var html string
+	var buf []byte
+
+	// Listen for signal send from chrome dev tool and handle it
+	chromedp.ListenTarget(chromeCtx, func(event interface{}) {
+		switch ev := event.(type) {
+		// Handle signals those are sent from every request made
+		// Fail every request those are not of document type (HTML) to save bandwidth
+		case *fetch.EventRequestPaused:
+			go func() {
+				fmt.Println(ev.Request.URL)
+				if ev.ResourceType == network.ResourceTypeDocument {
+					_ = chromedp.Run(chromeCtx, fetch.ContinueRequest(ev.RequestID))
+				} else {
+					fmt.Printf("Fail request %s\n", ev.RequestID)
+					_ = chromedp.Run(chromeCtx, fetch.FailRequest(ev.RequestID, network.ErrorReasonBlockedByClient))
+				}
+			}()
+		case *network.EventResponseReceived:
+			res := ev.Response
+			if ev.Response.URL == url {
+				fetch.Disable().Do(chromeCtx)
+			}
+			fmt.Printf("Received response: URL=%s, Status=%d, Headers=%v",
+				res.URL, res.Status, res.Headers)
+		}
+	})
 
 	// Initiate a chromium instance and run.
 	// NOTE: chromedp.Run() first time called will initiate a chromium instance,
 	// therefore it is crucial to not pass a context with timeout for the first call
-	if err := chromedp.Run(
-		newCtx,
-
-		// List of actions that will be executed sequentially.
+	if err = chromedp.Run(
+		chromeCtx,
+		network.Enable(),
+		// Listen for images request and fail it (to save bandwidth)
+		fetch.Enable().WithPatterns([]*fetch.RequestPattern{
+			{
+				URLPattern:   "*",
+				RequestStage: fetch.RequestStageRequest,
+			},
+		}), // List of actions that will be executed sequentially.
 		// Disable webdriver detection.
 		chromedp.Evaluate(`Object.defineProperty(navigator, 'webdriver', { get: () => false })`, nil),
 		// Navigate the the target page.
@@ -106,8 +153,14 @@ func (s *Scraper) Scrape(ctx context.Context, url, targetPageReachedSelector str
 		}),
 		// Extract the HTML content
 		chromedp.OuterHTML("html", &html, chromedp.ByQuery),
+		chromedp.FullScreenshot(&buf, 100),
+		fetch.Disable(),
 	); err != nil {
 		return "", err
+	}
+
+	if err := os.WriteFile("fullScreenshot.png", buf, 0o644); err != nil {
+		log.Fatal(err)
 	}
 
 	return html, nil
