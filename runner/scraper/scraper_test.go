@@ -2,7 +2,7 @@ package scraper
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -22,13 +22,12 @@ func TestScraper(t *testing.T) {
 	scraper := NewScraper(
 		42,
 		3,
-		"http://100.106.3.17:8888",
+		// "http://100.106.3.17:8888",
 	)
-
 	content, err := scraper.Scrape(
 		ctx,
-		"https://www.hltv.org/matches/2382694/vitality-vs-falcons-iem-dallas-2025",
-		"div.hltv-logo-container",
+		"https://www.soccerstats.com/pmatch.asp?league=england&stats=117-19-17-2025",
+		"#insidetopdiv > table > tbody > tr > td:nth-child(1) > a > img",
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -39,35 +38,24 @@ func TestScraper(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	team1Name := doc.Find("body > div.bgPadding > div.widthControl > div:nth-child(2) > div.contentCol > div.match-page > div.standard-box.teamsBox > div:nth-child(1) > div > a > div").
+	team1Name := doc.Find(`#content > table:nth-child(10) > tbody > tr > td:nth-child(2) > div > div:nth-child(2) > table:nth-child(2) > tbody > tr:nth-child(2) > td:nth-child(1) > a > font`).
 		Text()
-	if team1Name == "" {
-		t.Errorf("team 1's name is not found\n")
-	}
-	team2Name := doc.Find("body > div.bgPadding > div.widthControl > div:nth-child(2) > div.contentCol > div.match-page > div.standard-box.teamsBox > div:nth-child(3) > div > a > div").
+	team2Name := doc.Find(`#content > table:nth-child(10) > tbody > tr > td:nth-child(2) > div > div:nth-child(2) > table:nth-child(2) > tbody > tr:nth-child(2) > td:nth-child(5) > a > font`).
 		Text()
-	if team2Name == "" {
-		t.Errorf("team 2's name is not found\n")
-	}
-	team1Result := doc.Find("body > div.bgPadding > div.widthControl > div:nth-child(2) > div.contentCol > div.match-page > div.standard-box.teamsBox > div:nth-child(1) > div > div").
+	team1Result := doc.Find(`#content > table:nth-child(10) > tbody > tr > td:nth-child(2) > div > div:nth-child(2) > table:nth-child(2) > tbody > tr:nth-child(2) > td:nth-child(2) > font > b`).
 		Text()
-	if team1Result == "" {
-		t.Errorf("team 1's result is not found\n")
-	}
-	team2Result := doc.Find("body > div.bgPadding > div.widthControl > div:nth-child(2) > div.contentCol > div.match-page > div.standard-box.teamsBox > div:nth-child(3) > div > div").
+	team2Result := doc.Find(`#content > table:nth-child(10) > tbody > tr > td:nth-child(2) > div > div:nth-child(2) > table:nth-child(2) > tbody > tr:nth-child(2) > td:nth-child(2) > font > b`).
 		Text()
-	if team2Result == "" {
-		t.Errorf("team 2's result is not found\n")
-	}
+	team1BallPossesion := doc.Find(`#content > table:nth-child(10) > tbody > tr > td:nth-child(2) > div > div:nth-child(3) > table:nth-child(6) > tbody > tr > td > table:nth-child(3) > tbody > tr:nth-child(2) > td:nth-child(1) > font > b`).
+		Text()
+	team2BallPossesion := doc.Find(`#content > table:nth-child(10) > tbody > tr > td:nth-child(2) > div > div:nth-child(3) > table:nth-child(6) > tbody > tr > td > table:nth-child(3) > tbody > tr:nth-child(2) > td:nth-child(1) > font > b`).
+		Text()
+	team1TimeOfLeading := doc.Find(`#content > table:nth-child(10) > tbody > tr > td:nth-child(2) > div > div:nth-child(3) > table:nth-child(6) > tbody > tr > td > table:nth-child(5) > tbody > tr:nth-child(2) > td:nth-child(1) > font > b`).
+		Text()
+	team2TimeOfLeading := doc.Find(`#content > table:nth-child(10) > tbody > tr > td:nth-child(2) > div > div:nth-child(3) > table:nth-child(6) > tbody > tr > td > table:nth-child(5) > tbody > tr:nth-child(2) > td:nth-child(3) > font > b`).
+		Text()
 
-	team1Name = strings.TrimSpace(team1Name)
-	team2Name = strings.TrimSpace(team2Name)
-	team1Result = strings.TrimSpace(team1Result)
-	team2Result = strings.TrimSpace(team2Result)
-
-	log.Println(team1Name)
-	log.Println(team1Result)
-	log.Println(team2Name)
-	log.Println(team2Result)
-
+	fmt.Printf("Result: %s %s %s %s\n", team1Name, team1Result, team2Result, team2Name)
+	fmt.Printf("Ball Possesion: %s %s %s %s\n", team1Name, team1BallPossesion, team2BallPossesion, team2Name)
+	fmt.Printf("Time of leading: %s %s %s %s\n", team1Name, team1TimeOfLeading, team2TimeOfLeading, team2Name)
 }

@@ -43,7 +43,6 @@ func checkEqualArr(a []int, b []int) bool {
 
 func TestRandomizeCyclicGroup(t *testing.T) {
 	modulos := []int{4, 5, 7, 12}
-	randomnesses := []int{3, 42}
 
 	for _, modulo := range modulos {
 		var orderredArr []int
@@ -51,20 +50,18 @@ func TestRandomizeCyclicGroup(t *testing.T) {
 			orderredArr = append(orderredArr, i)
 		}
 
-		for _, randomness := range randomnesses {
-			randomizedArr := RandomizeCyclicGroup(modulo, randomness)
-			if !checkEqualArr(orderredArr, randomizedArr) {
-				t.Errorf(
-					"2 arrays are not the same: orderred:%v, randomized:%v\n",
-					orderredArr,
-					randomizedArr,
-				)
-			}
-
-			fmt.Printf("Orderred array:%v\nRandomized Array:%v\n",
+		randomizedArr := RandomizeCyclicGroup(modulo)
+		if !checkEqualArr(orderredArr, randomizedArr) {
+			t.Errorf(
+				"2 arrays are not the same: orderred:%v, randomized:%v\n",
 				orderredArr,
 				randomizedArr,
 			)
 		}
+
+		fmt.Printf("Orderred array:%v\nRandomized Array:%v\n",
+			orderredArr,
+			randomizedArr,
+		)
 	}
 }

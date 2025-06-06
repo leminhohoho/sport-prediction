@@ -8,7 +8,7 @@ import (
 )
 
 func TestScheduler(t *testing.T) {
-	s := NewScheduler(42, context.Background(), false)
+	s := NewScheduler(5, context.Background(), false)
 
 	if err := s.Run(
 		ActionFunc(func(ctx context.Context) error {
@@ -27,7 +27,7 @@ func TestScheduler(t *testing.T) {
 			log.Printf("In 3 second, some random words will be said, ")
 			return nil
 		}, time.Second * 1},
-		Sleep(time.Second*5),
+		Sleep(time.Second*3),
 		ActionFuncsRandom{
 			func(ctx context.Context) error {
 				log.Printf("skibidi, ")
@@ -56,6 +56,78 @@ func TestScheduler(t *testing.T) {
 		},
 		ActionFunc(func(ctx context.Context) error {
 			log.Printf("I have brainrot maximum level\n")
+			return nil
+		}),
+		Async{ActionFunc(func(ctx context.Context) error {
+			time.Sleep(time.Millisecond * 1000)
+			log.Printf("Viva RRQ\n")
+
+			return nil
+		})},
+		Async{ActionFunc(func(ctx context.Context) error {
+			time.Sleep(time.Millisecond * 1000)
+			log.Printf("Viva RRQ\n")
+
+			return nil
+		})},
+		Async{ActionFunc(func(ctx context.Context) error {
+			time.Sleep(time.Millisecond * 1000)
+			log.Printf("Viva RRQ\n")
+
+			return nil
+		})},
+		ActionFunc(func(ctx context.Context) error {
+			time.Sleep(time.Millisecond * 1000)
+			log.Printf("Viva RRQ\n")
+
+			return nil
+		}),
+		Async{ActionFunc(func(ctx context.Context) error {
+			time.Sleep(time.Millisecond * 1000)
+			log.Printf("Viva RRQ\n")
+
+			return nil
+		})},
+		Async{ActionFunc(func(ctx context.Context) error {
+			time.Sleep(time.Millisecond * 1000)
+			log.Printf("Viva RRQ\n")
+
+			return nil
+		})},
+		Async{ActionFunc(func(ctx context.Context) error {
+			time.Sleep(time.Millisecond * 1000)
+			log.Printf("Viva RRQ\n")
+
+			return nil
+		})},
+		ActionFunc(func(ctx context.Context) error {
+			time.Sleep(time.Millisecond * 1000)
+			log.Printf("Viva RRQ\n")
+
+			return nil
+		}),
+		Async{ActionFunc(func(ctx context.Context) error {
+			time.Sleep(time.Millisecond * 1000)
+			log.Printf("Viva RRQ\n")
+
+			return nil
+		})},
+		Async{ActionFunc(func(ctx context.Context) error {
+			time.Sleep(time.Millisecond * 1000)
+			log.Printf("Viva RRQ\n")
+
+			return nil
+		})},
+		Async{ActionFunc(func(ctx context.Context) error {
+			time.Sleep(time.Millisecond * 1000)
+			log.Printf("Viva RRQ\n")
+
+			return nil
+		})},
+		ActionFunc(func(ctx context.Context) error {
+			time.Sleep(time.Millisecond * 1000)
+			log.Printf("Viva RRQ\n")
+
 			return nil
 		}),
 	); err != nil {

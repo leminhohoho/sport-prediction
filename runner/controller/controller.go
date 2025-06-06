@@ -1,4 +1,4 @@
-package runner
+package controller
 
 import (
 	"database/sql"
@@ -14,5 +14,23 @@ type Controller struct {
 	taskScheduler *scheduler.Scheduler
 	db            *sql.DB
 	crawler       *colly.Collector
-	scraper       *scraper.Scraper
+	scrapers      *scraper.Scraper
+}
+
+func NewController(
+	taskScheduler *scheduler.Scheduler,
+	db *sql.DB,
+	crawler *colly.Collector,
+	scrapers *scraper.Scraper,
+) *Controller {
+	return &Controller{
+		taskScheduler: taskScheduler,
+		db:            db,
+		crawler:       crawler,
+		scrapers:      scrapers,
+	}
+}
+
+func (c *Controller) Start() error {
+	c.taskScheduler.Run()
 }

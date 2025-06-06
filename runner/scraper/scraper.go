@@ -74,7 +74,7 @@ func (s *Scraper) initializeBrowserContext(ctx context.Context) (context.Context
 	}
 
 	// Create a context to carry all the options.
-	allocCtx, allowCtxCancel := chromedp.NewExecAllocator(ctx, opts...)
+	allocCtx, allowCtxCancel := chromedp.NewRemoteAllocator(ctx, "ws://127.0.0.1:9222/devtools/browser")
 	newCtx, newCtxCancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
 
 	return newCtx, func() { allowCtxCancel(); newCtxCancel() }, nil
