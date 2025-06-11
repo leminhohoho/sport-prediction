@@ -20,14 +20,13 @@ func TestScraper(t *testing.T) {
 	defer cancel()
 
 	scraper := NewScraper(
-		42,
 		3,
 		// "http://100.106.3.17:8888",
 	)
 	content, err := scraper.Scrape(
 		ctx,
-		"https://www.soccerstats.com/pmatch.asp?league=england&stats=117-19-17-2025",
-		"#insidetopdiv > table > tbody > tr > td:nth-child(1) > a > img",
+		"https://www.vlr.gg/487861/leviat-n-academy-vs-shinden-challengers-league-2025-latam-south-ace-stage-2-gf",
+		"body > header > nav > a.header-logo > img",
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -38,24 +37,48 @@ func TestScraper(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	team1Name := doc.Find(`#content > table:nth-child(10) > tbody > tr > td:nth-child(2) > div > div:nth-child(2) > table:nth-child(2) > tbody > tr:nth-child(2) > td:nth-child(1) > a > font`).
+	team1Name := doc.Find(`#wrapper > div.col-container > div.col.mod-3 > div.wf-card.match-header > div.match-header-vs > a.match-header-link.wf-link-hover.mod-1 > div > div.wf-title-med`).
 		Text()
-	team2Name := doc.Find(`#content > table:nth-child(10) > tbody > tr > td:nth-child(2) > div > div:nth-child(2) > table:nth-child(2) > tbody > tr:nth-child(2) > td:nth-child(5) > a > font`).
+	team2Name := doc.Find(`#wrapper > div.col-container > div.col.mod-3 > div.wf-card.match-header > div.match-header-vs > a.match-header-link.wf-link-hover.mod-2 > div > div.wf-title-med`).
 		Text()
-	team1Result := doc.Find(`#content > table:nth-child(10) > tbody > tr > td:nth-child(2) > div > div:nth-child(2) > table:nth-child(2) > tbody > tr:nth-child(2) > td:nth-child(2) > font > b`).
+	team1Player1 := doc.Find(`#wrapper > div.col-container > div.col.mod-3 > div:nth-child(6) > div > div.vm-stats-container > div.vm-stats-game.mod-active > div:nth-child(2) > div:nth-child(1) > table > tbody > tr:nth-child(1) > td.mod-player > div > a > div.text-of`).
 		Text()
-	team2Result := doc.Find(`#content > table:nth-child(10) > tbody > tr > td:nth-child(2) > div > div:nth-child(2) > table:nth-child(2) > tbody > tr:nth-child(2) > td:nth-child(2) > font > b`).
+	team1Player2 := doc.Find(`#wrapper > div.col-container > div.col.mod-3 > div:nth-child(6) > div > div.vm-stats-container > div.vm-stats-game.mod-active > div:nth-child(2) > div:nth-child(1) > table > tbody > tr:nth-child(2) > td.mod-player > div > a > div.text-of`).
 		Text()
-	team1BallPossesion := doc.Find(`#content > table:nth-child(10) > tbody > tr > td:nth-child(2) > div > div:nth-child(3) > table:nth-child(6) > tbody > tr > td > table:nth-child(3) > tbody > tr:nth-child(2) > td:nth-child(1) > font > b`).
+	team1Player3 := doc.Find(`#wrapper > div.col-container > div.col.mod-3 > div:nth-child(6) > div > div.vm-stats-container > div.vm-stats-game.mod-active > div:nth-child(2) > div:nth-child(1) > table > tbody > tr:nth-child(3) > td.mod-player > div > a > div.text-of`).
 		Text()
-	team2BallPossesion := doc.Find(`#content > table:nth-child(10) > tbody > tr > td:nth-child(2) > div > div:nth-child(3) > table:nth-child(6) > tbody > tr > td > table:nth-child(3) > tbody > tr:nth-child(2) > td:nth-child(1) > font > b`).
+	team1Player4 := doc.Find(`#wrapper > div.col-container > div.col.mod-3 > div:nth-child(6) > div > div.vm-stats-container > div.vm-stats-game.mod-active > div:nth-child(2) > div:nth-child(1) > table > tbody > tr:nth-child(4) > td.mod-player > div > a > div.text-of`).
 		Text()
-	team1TimeOfLeading := doc.Find(`#content > table:nth-child(10) > tbody > tr > td:nth-child(2) > div > div:nth-child(3) > table:nth-child(6) > tbody > tr > td > table:nth-child(5) > tbody > tr:nth-child(2) > td:nth-child(1) > font > b`).
-		Text()
-	team2TimeOfLeading := doc.Find(`#content > table:nth-child(10) > tbody > tr > td:nth-child(2) > div > div:nth-child(3) > table:nth-child(6) > tbody > tr > td > table:nth-child(5) > tbody > tr:nth-child(2) > td:nth-child(3) > font > b`).
+	team1Player5 := doc.Find(`#wrapper > div.col-container > div.col.mod-3 > div:nth-child(6) > div > div.vm-stats-container > div.vm-stats-game.mod-active > div:nth-child(2) > div:nth-child(1) > table > tbody > tr:nth-child(5) > td.mod-player > div > a > div.text-of`).
 		Text()
 
-	fmt.Printf("Result: %s %s %s %s\n", team1Name, team1Result, team2Result, team2Name)
-	fmt.Printf("Ball Possesion: %s %s %s %s\n", team1Name, team1BallPossesion, team2BallPossesion, team2Name)
-	fmt.Printf("Time of leading: %s %s %s %s\n", team1Name, team1TimeOfLeading, team2TimeOfLeading, team2Name)
+	team2Player1 := doc.Find(`#wrapper > div.col-container > div.col.mod-3 > div:nth-child(6) > div > div.vm-stats-container > div.vm-stats-game.mod-active > div:nth-child(2) > div:nth-child(2) > table > tbody > tr:nth-child(1) > td.mod-player > div > a > div.text-of`).
+		Text()
+	team2Player2 := doc.Find(`#wrapper > div.col-container > div.col.mod-3 > div:nth-child(6) > div > div.vm-stats-container > div.vm-stats-game.mod-active > div:nth-child(2) > div:nth-child(2) > table > tbody > tr:nth-child(2) > td.mod-player > div > a > div.text-of`).
+		Text()
+	team2Player3 := doc.Find(`#wrapper > div.col-container > div.col.mod-3 > div:nth-child(6) > div > div.vm-stats-container > div.vm-stats-game.mod-active > div:nth-child(2) > div:nth-child(2) > table > tbody > tr:nth-child(3) > td.mod-player > div > a > div.text-of`).
+		Text()
+	team2Player4 := doc.Find(`#wrapper > div.col-container > div.col.mod-3 > div:nth-child(6) > div > div.vm-stats-container > div.vm-stats-game.mod-active > div:nth-child(2) > div:nth-child(2) > table > tbody > tr:nth-child(4) > td.mod-player > div > a > div.text-of`).
+		Text()
+	team2Player5 := doc.Find(`#wrapper > div.col-container > div.col.mod-3 > div:nth-child(6) > div > div.vm-stats-container > div.vm-stats-game.mod-active > div:nth-child(2) > div:nth-child(2) > table > tbody > tr:nth-child(5) > td.mod-player > div > a > div.text-of`).
+		Text()
+
+	fmt.Printf(
+		"%s:\n	%s\n	%s\n	%s\n	%s\n	%s\n",
+		strings.TrimSpace(team1Name),
+		strings.TrimSpace(team1Player1),
+		strings.TrimSpace(team1Player2),
+		strings.TrimSpace(team1Player3),
+		strings.TrimSpace(team1Player4),
+		strings.TrimSpace(team1Player5),
+	)
+	fmt.Printf(
+		"%s:\n	%s\n	%s\n	%s\n	%s\n	%s\n",
+		strings.TrimSpace(team2Name),
+		strings.TrimSpace(team2Player1),
+		strings.TrimSpace(team2Player2),
+		strings.TrimSpace(team2Player3),
+		strings.TrimSpace(team2Player4),
+		strings.TrimSpace(team2Player5),
+	)
 }

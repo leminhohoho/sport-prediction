@@ -59,11 +59,11 @@ func (s *Scheduler) Run(actions ...Action) error {
 }
 
 type Async struct {
-	a Action
+	A Action
 }
 
 func (as Async) Do(ctx context.Context, s *Scheduler) {
-	go as.a.Do(ctx, s)
+	go as.A.Do(ctx, s)
 }
 
 // Execute a normal function as an action
